@@ -42,7 +42,7 @@ passed in as parameters) is always nice for users too:
 You can use molecule to test this role
 
 ```
-$ pip3 install molecule
+$ pip3 install molecule docker
 $ molecule test
 $ MOLECULE_NO_LOG="false" MOLECULE_DISTRO=ubuntu:18.04 molecule test --destroy=never
 ```
