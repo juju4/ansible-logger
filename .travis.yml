@@ -15,8 +15,8 @@ install:
 
 before_script:
   - cd ../ && mv ansible-logger juju4.logger
+  - ansible-galaxy install -p . -r requirements.yml
   - cd juju4.logger
-  - ansible-galaxy install -r requirements.yml
 
 script:
   - molecule test
