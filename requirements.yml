@@ -1,0 +1,12 @@
+- src: juju4.redhat_epel
+- src: geerlingguy.mysql
+- src: geerlingguy.redis
+- name: juju4.kolide
+  src: https://github.com/juju4/ansible-kolide
+- name: juju4.ipsumdump
+  src: https://github.com/juju4/ansible-ipsumdump
+- name: juju4.zeek
+  src: https://github.com/juju4/ansible-zeek
+- src: mrlesmithjr.suricata
+- name: mrlesmithjr.guacamole
+  src: https://github.com/juju4/ansible-guacamole

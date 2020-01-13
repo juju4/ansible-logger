@@ -1,0 +1,176 @@
+---
+# https://docs.splunk.com/Documentation/Splunk/8.0.1/Admin/ConfigureSplunktostartatboottime#Enable_boot-start_as_a_non-root_user
+
+- name: Ensure splunk user exists
+  user:
+    name: "{{ logger_splunk_user }}"
+    comment: Splunk user
+    shell: /usr/sbin/nologin
+  when: logger_splunk_user != 'root'
+
+- name: Check latest splunk version
+  shell: |
+    set -o pipefail
+    curl https://www.splunk.com/en_us/download/splunk-enterprise.html | grep -i deb | grep -Eo "data-link=\"................................................................................................................................" | cut -d '"' -f 2
+  changed_when: false
+  register: LATEST_SPLUNK
+  args:
+    warn: false
+    executable: /bin/bash
+
+- name: Check if splunk downloaded
+  stat:
+    path: "/opt/{{ LATEST_SPLUNK.stdout | basename }}"
+  register: dlsplunk
+
+- name: Download latest splunk
+  get_url:
+    url: "{{ LATEST_SPLUNK.stdout }}"
+    dest: /opt
+    mode: '0644'
+  when: not dlsplunk.stat.exists
+
+- name: Install splunk
+  apt:
+    deb: "/opt/{{ LATEST_SPLUNK.stdout | basename }}"
+    state: present
+
+- name: Check if splunk configuration has been done
+  stat:
+    path: /opt/.splunk_install_done
+  register: splunk_install
+
+- name: Configure Splunk as non-root
+  file:
+    dest: /opt/splunk
+    owner: "{{ logger_splunk_user }}"
+    recurse: yes
+  when: logger_splunk_user != 'root'
+
+- block:
+# https://answers.splunk.com/answers/576464/splunk-enterprise-and-splunk-light-installation-fa.html
+    - name: Workaround FileSystem
+      lineinfile:
+        dest: /opt/splunk/etc/splunk-launch.conf
+        regexp: '^OPTIMISTIC_ABOUT_FILE_LOCKING = .*'
+        line: 'OPTIMISTIC_ABOUT_FILE_LOCKING = 1'
+        owner: "{{ logger_splunk_user }}"
+        backup: "{{ logger_backup | default(true) }}"
+
+    - name: Configure splunk
+      command: "{{ item }}"
+      with_items:
+# FIXME! support overlayfs?
+# https://answers.splunk.com/answers/115127/error-while-validating-databases.html
+# https://docs.splunk.com/Documentation/Splunk/6.3.0/Installation/SystemRequirements#Supported_file_systems
+# https://docs.splunk.com/Documentation/Splunk/8.0.1/Installation/DeployandrunSplunkEnterpriseinsideDockercontainers
+        - "/opt/splunk/bin/splunk start --accept-license --answer-yes --no-prompt --seed-passwd {{ logger_splunk_passwd }}"
+        - "/opt/splunk/bin/splunk add index wineventlog -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk add index osquery -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk add index osquery-status -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk add index sysmon -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk add index powershell -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk add index zeek -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk add index suricata -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk add index threathunting -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_forwarder/splunk-add-on-for-microsoft-windows_500.tgz -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/add-on-for-microsoft-sysmon_800.tgz -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/asn-lookup-generator_101.tgz -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/lookup-file-editor_331.tgz -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/splunk-add-on-for-zeek-aka-bro_400.tgz -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/force-directed-app-for-splunk_200.tgz  -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/punchcard-custom-visualization_130.tgz  -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/sankey-diagram-custom-visualization_130.tgz  -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/link-analysis-app-for-splunk_161.tgz -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/threathunting_141.tgz  -auth 'admin:{{ logger_splunk_passwd }}'"
+      ignore_errors: true
+      become: yes
+      become_user: "{{ logger_splunk_user }}"
+
+    - name: Add marker for splunk configuration
+      file:
+        dest: /opt/.splunk_install_done
+        state: touch
+  when: not splunk_install.stat.exists
+
+- name: Ensure directories exist
+  file:
+    dest: "{{ item }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ logger_splunk_user }}"
+  with_items:
+    - /opt/splunk/etc/apps/Splunk_TA_windows/local
+    - /opt/splunk/etc/users/admin/search/local
+    - /opt/splunk/etc/apps/user-prefs/local
+
+- name: Add custom Splunk files
+  copy:
+    src: "{{ item.s }}"
+    dest: "{{ item.d }}"
+    remote_src: true
+    mode: "{{ item.m | default('0644') }}"
+    owner: "{{ logger_splunk_user }}"
+    backup: "{{ logger_backup | default(true) }}"
+  with_items:
+    - { s: "{{ logger_repo_vagrant }}/resources/splunk_server/macros.conf", d: /opt/splunk/etc/apps/ThreatHunting/default/macros.conf }
+    - { s: "{{ logger_repo_vagrant }}/resources/splunk_server/props.conf", d: /opt/splunk/etc/apps/search/local/ }
+    - { s: "{{ logger_repo_vagrant }}/resources/splunk_server/transforms.conf", d: /opt/splunk/etc/apps/search/local/ }
+  notify:
+    - restart splunk
+
+- name: Remove some Splunk files
+  file:
+    dest: "{{ item }}"
+    state: absent
+  with_items:
+    - /opt/splunk/etc/apps/force_directed_viz/default/savedsearches.conf
+  notify:
+    - restart splunk
+
+- name: Ensure Splunk configuration
+  template:
+    src: "{{ item.s }}.j2"
+    dest: "{{ item.d }}"
+    mode: "{{ item.m | default('0600') }}"
+    owner: "{{ item.o | default(logger_splunk_user) }}"
+    backup: "{{ logger_backup | default(true) }}"
+  with_items:
+    - { s: macros.conf, d: /opt/splunk/etc/apps/Splunk_TA_windows/local/macros.conf }
+    - { s: inputs.conf, d: /opt/splunk/etc/apps/search/local/inputs.conf }
+    - { s: ui-tour.conf, d: /opt/splunk/etc/system/local/ui-tour.conf}
+    - { s: user-prefs.conf, d: /opt/splunk/etc/system/local/user-prefs.conf}
+    - { s: local-user-prefs.conf, d: /opt/splunk/etc/apps/user-prefs/local/user-prefs.conf}
+    - { s: web.conf, d: /opt/splunk/etc/system/local/web.conf}
+    - { s: limits.conf, d: /opt/splunk/etc/system/local/limits.conf }
+    - { s: telemetry.conf, d: /opt/splunk/etc/apps/splunk_instrumentation/local/telemetry.conf}
+  notify:
+    - restart splunk
+
+- name: Check if splunk tour disabled
+  stat:
+    path: /opt/splunk/etc/.ui_login
+  register: splunk_tour
+
+- name: Disable Splunk tour
+  file:
+    dest: /opt/splunk/etc/.ui_login
+    owner: "{{ logger_splunk_user }}"
+    state: touch
+  when: not splunk_tour.stat.exists
+
+- name: Enable Splunk at boot
+  command: "/opt/splunk/bin/splunk enable boot-start -user {{ logger_splunk_user }}"
+  args:
+    creates: /etc/init.d/splunk
+  become: yes
+
+# https://github.com/doksu/TA-asngen/wiki
+# Maxmind dependency. still working/register wall?
+# need https://twitter.com/curi0usJack/status/1214950116588695552
+- name: Generate the ASN lookup table
+  command: >
+    /opt/splunk/bin/splunk search "|asngen | outputlookup asn" -auth 'admin:{{ logger_splunk_passwd }}'
+  become: yes
+  become_user: "{{ logger_splunk_user }}"
+  when: logger_splunk_maxmind_enable

@@ -1,0 +1,10 @@
+{{ ansible_managed | comment }}
+# /root/.fleet/config
+contexts:
+  default:
+    address: https://localhost:8080
+    email: {{ logger_fleet_email }}
+    rootca: ""
+    tls-skip-verify: true
+    token: xxxxx
+    url-prefix: ""

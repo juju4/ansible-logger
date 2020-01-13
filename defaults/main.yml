@@ -1,0 +1,16 @@
+---
+# defaults file for juju4.logger
+
+logger_user: vagrant
+logger_repo_root: /vagrant
+#logger_repo_root: /opt/DetectionLab
+logger_repo_vagrant: "{{ logger_repo_root }}/Vagrant"
+
+logger_splunk_user: _splunk
+logger_splunk_passwd: changeme
+logger_splunk_maxmind_enable: false
+
+logger_fleet_email: admin@detectionlab.network
+logger_fleet_adminpass: 'admin123#'
+
+kolide_logs: /opt/kolide-quickstart

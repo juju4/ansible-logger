@@ -1,0 +1,84 @@
+---
+
+# https://github.com/clong/DetectionLab/blob/master/Vagrant/bootstrap.sh
+
+# apt_repository ppa may be an issue if behind a proxy as seems no easy way to pass proxy settings to apt-key through add-apt-repository used by ansible
+- name: Debian | Add repositories key
+  apt_key:
+    url: "{{ item }}"
+    state: present
+  register: pkg_result
+  until: pkg_result is success
+  with_items:
+    - "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x6657dbe0cc86bb64"
+    - "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x1ee2ff37ca8da16b"
+#    - "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xd7f87b2966eb736f"
+
+- name: Debian | Configure additional apt repositories
+  apt_repository:
+    repo: "deb http://ppa.launchpad.net/{{ item }}/ubuntu/ {{ ansible_distribution_release | lower }} main"
+    state: present
+  with_items:
+    - apt-fast/stable
+    - rmescandon/yq
+#    - oisf/suricata-stable
+
+- name: Ensure logger packages are present
+  apt:
+    name:
+      - apt-fast
+      - jq
+      - whois
+      - build-essential
+      - git
+      - docker
+      - docker-compose
+      - unzip
+      - htop
+      - yq
+    update_cache: true
+
+- name: Ensure logger_user exists
+  user:
+    name: "{{ logger_user }}"
+    group: sudo
+
+- name: Enforce color prompt in terminal
+  replace:
+    dest: "{{ item }}"
+    regexp: '^#force_color_prompt=yes'
+    replace: 'force_color_prompt=yes'
+    backup: "{{ logger_backup | default(true) }}"
+  with_items:
+    - /root/.bashrc
+    - "/home/{{ logger_user }}/.bashrc"
+
+- name: Remove default ubuntu help motd
+  file:
+    dest: /etc/update-motd.d/10-help-text
+    state: absent
+
+- name: Git clone DetectionLab repo
+  git:
+    repo: https://github.com/clong/DetectionLab.git
+    dest: "{{ logger_repo_root }}"
+    version: "{{ logger_detectionlab_version | default('4d13f53866267982cd87f383ba79d5db048896ed') }}"
+
+- name: Configure DetectionLab motd
+  copy:
+    src: "{{ logger_repo_vagrant }}/resources/logger/20-detectionlab"
+    dest: /etc/update-motd.d/20-detectionlab
+    remote_src: true
+    mode: '0755'
+
+- include: splunk.yml
+
+- include: osquery.yml
+
+- name: Update bashrc PATH
+  lineinfile:
+    dest: "{{ item }}"
+    line: 'export PATH="$PATH:/opt/splunk/bin:/opt/zeek/bin"'
+  with_items:
+    - /root/.bashrc
+    - "/home/{{ logger_user }}/.bashrc"

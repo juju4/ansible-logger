@@ -1,0 +1,45 @@
+---
+- name: Converge
+  hosts: all
+  environment:
+   http_proxy: "{{ lookup('env', 'http_proxy') }}"
+   https_proxy: "{{ lookup('env', 'https_proxy') }}"
+   no_proxy: "{{ lookup('env', 'no_proxy') }}"
+  vars:
+    use_zeek_opensuse_repo: true
+    # to avoid rotating mirror
+    guacamole_dl_url: 'https://www-us.apache.org/dist/guacamole/1.0.0'
+    kolide_enrollment_secret: enrollmentsecret
+    broids_intels:
+      - /opt/zeek/etc/intel.dat
+    # same than juju4.kolide
+    kolide_port: 8412
+    kolide_mysql_pass: "Kolide!2017@"
+    kolide_mysql_db: kolidedb
+    kolide_logs: /var/log/kolide
+    kolide_snapshot_split_enable: true
+    guacamole_rdp_security: nla
+    guacamole_rdp_ignore_cert: 'false'
+    guacamole_users:
+      - name: vagrant
+        password: vagrant
+        connections:
+          - host: 192.168.38.105
+            name: logger
+            protocol: ssh
+            port: 22
+          - host: 192.168.38.103
+            name: wef
+            protocol: rdp
+            port: 3389
+          - host: 192.168.38.104
+            name: win10
+            protocol: rdp
+            port: 3389
+          - host: 192.168.38.102
+            name: dc
+            protocol: rdp
+            port: 3389
+  roles:
+    - { role: geerlingguy.mysql, when: ansible_os_family == 'Debian' }
+    - role: juju4.logger

@@ -1,0 +1,9 @@
+---
+
+- name: restart splunk
+  command: /opt/splunk/bin/splunk restart
+
+- name: restart guacd
+  service:
+    name: guacd
+    state: restarted
