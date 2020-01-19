@@ -6,8 +6,8 @@ env:
   global:
     - MOLECULE_NO_LOG: "false"
   matrix:
-    - MOLECULE_DISTRO: ubuntu:18.04
-    - MOLECULE_DISTRO: ubuntu:16.04
+    - MOLECULE_DISTRO: ubuntu1804
+    - MOLECULE_DISTRO: ubuntu1604
 
 install:
   # Install test dependencies.
