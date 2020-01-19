@@ -36,7 +36,7 @@ before_install:
   - sudo zpool list
   - sudo lxc profile device add default root disk path=/ pool=pool1
   - sudo lxc profile show default
-  - ls -la /var/lib/lxd/unix.socket /var/snap/lxd/common/lxd/unix.socket
+  - ls -la /var/lib/lxd/unix.socket /var/snap/lxd/common/lxd/unix.socket || true
   - ansible-playbook -vv -i localhost, molecule/default/travis.yml
 
 install:
