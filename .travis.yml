@@ -9,6 +9,34 @@ env:
     - MOLECULE_DISTRO: ubuntu:18.04
     - MOLECULE_DISTRO: ubuntu:16.04
 
+before_install:
+  - echo "deb http://archive.ubuntu.com/ubuntu xenial-backports main restricted universe multiverse" | sudo tee /etc/apt/sources.list.d/xenial-backports.list
+  - sudo apt-get update -qq
+  - sudo apt -t xenial-backports -y install lxd acl dnsmasq-base zfsutils-linux rng-tools -q
+  - sudo usermod -G lxd travis
+  - sudo -E su $USER -c "lxc remote list"
+  - sudo -E su $USER -c "lxc image list"
+## configure network
+  - ifconfig -a
+  - sudo lxc info
+  - sudo lxc network list
+  - sudo lxc network create lxdbr0
+  - sudo lxc network show lxdbr0
+  - sudo lxc network attach-profile lxdbr0 default ens4
+  - sudo lxc profile device get default ens4 nictype || true
+  - sudo service lxd restart
+  - ps ax | grep dnsmasq
+  - systemctl status -l --no-pager lxd || true
+  - cat /etc/network/interfaces.d/50-cloud-init.cfg
+  - sudo lxc network list
+# configure storage pool
+  - sudo lxc storage list
+  - sudo lxc storage create pool1 zfs
+  - sudo lxc storage list
+  - sudo zpool list
+  - sudo lxc profile device add default root disk path=/ pool=pool1
+  - sudo lxc profile show default
+
 install:
   # Install test dependencies.
   - pip install molecule
