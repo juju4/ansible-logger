@@ -103,6 +103,9 @@
     - /opt/splunk/etc/apps/Splunk_TA_windows/local
     - /opt/splunk/etc/users/admin/search/local
     - /opt/splunk/etc/apps/user-prefs/local
+    - /opt/splunk/etc/apps/ThreatHunting/default
+    - /opt/splunk/etc/apps/search/local
+    - /opt/splunk/etc/apps/splunk_instrumentation/local
 
 - name: Add custom Splunk files
   copy:
