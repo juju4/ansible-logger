@@ -13,6 +13,7 @@ env:
     suite: default
 
 before_install:
+  - cd .. && cp -R ansible-logger juju4.logger && cd juju4.logger
   - env
   - pwd
   - find -ls
