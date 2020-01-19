@@ -3,6 +3,7 @@
 - src: geerlingguy.redis
 - name: juju4.kolide
   src: https://github.com/juju4/ansible-kolide
+  version: devel-delegate
 - name: juju4.ipsumdump
   src: https://github.com/juju4/ansible-ipsumdump
 - name: juju4.zeek
