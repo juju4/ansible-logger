@@ -9,4 +9,4 @@
   src: https://github.com/juju4/ansible-zeek
 - src: mrlesmithjr.suricata
 - name: mrlesmithjr.guacamole
-  src: https://github.com/juju4/ansible-guacamole
+  src: https://github.com/mrlesmithjr/ansible-guacamole
