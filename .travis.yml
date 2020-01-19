@@ -16,7 +16,6 @@ before_install:
   - env
   - pwd
   - find -ls
-  - ansible-galaxy install -p .. -r requirements.yml
   - echo "deb http://archive.ubuntu.com/ubuntu xenial-backports main restricted universe multiverse" | sudo tee /etc/apt/sources.list.d/xenial-backports.list
   - sudo apt-get update -qq
   - sudo apt -t xenial-backports -y install lxd acl dnsmasq-base zfsutils-linux -q
@@ -52,6 +51,7 @@ before_install:
   - sudo sysctl -w net.ipv4.tcp_timestamps=1
 
   - sudo pip install ansible ansible-lint
+  - ansible-galaxy install -p .. -r requirements.yml
   - gem install test-kitchen --version "=1.25.0"
   - gem install kitchen-ansible
   - gem install kitchen-sync
