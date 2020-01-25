@@ -13,7 +13,7 @@
     broids_intels:
       - /opt/zeek/etc/intel.dat
     # same than juju4.kolide
-    kolide_port: 8080
+    kolide_port: 8412
     kolide_mysql_pass: "Kolide!2017@"
     kolide_mysql_db: kolidedb
     kolide_logs: /var/log/kolide
