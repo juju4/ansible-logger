@@ -37,26 +37,40 @@
   changed_when: false
   ignore_errors: true
 
-- name: Configure Palantir fleet packs
-  command: "{{ item.c }}"
-  changed_when: "{{ item.w | default(true) }}"
-  with_items:
-    - { c: "fleetctl login --email {{ logger_fleet_email }} --password '{{ logger_fleet_adminpass }}'", w: false }
-    - { c: "fleetctl apply -f /opt/osquery-configuration/Fleet/Endpoints/MacOS/osquery.yaml" }
-    - { c: "fleetctl apply -f /opt/osquery-configuration/Fleet/Endpoints/Windows/osquery.yaml" }
+- name: Check if extra fleetctl configuration has been done
+  stat:
+    path: /opt/.fleetctl_extras_done
+  register: fleectl_extras
 
-- name: Configure fleet with packs
-  command: "fleetctl apply -f /opt/osquery-configuration/Fleet/Endpoints/packs/{{ item }}.yaml"
-  with_items:
-    - performance-metrics
-    - security-tooling-checks
-    - windows-application-security
-    - windows-compliance
-    - windows-registry-monitoring
+- block:
+    - name: Configure Palantir fleet packs
+      command: "{{ item.c }}"
+      changed_when: "{{ item.w | default(true) }}"
+      with_items:
+        - { c: "fleetctl login --email {{ logger_fleet_email }} --password '{{ logger_fleet_adminpass }}'", w: false }
+        - { c: "fleetctl apply -f /opt/osquery-configuration/Fleet/Endpoints/MacOS/osquery.yaml" }
+        - { c: "fleetctl apply -f /opt/osquery-configuration/Fleet/Endpoints/Windows/osquery.yaml" }
 
-- name: Add Splunk monitors for Fleet
-  command: "{{ item }}"
-  with_items:
-    - "/opt/splunk/bin/splunk add monitor \"{{ kolide_logs }}/osquery_result\" -index osquery -sourcetype 'osquery:json' -auth 'admin:{{ logger_splunk_passwd }}'"
-    - "/opt/splunk/bin/splunk add monitor \"{{ kolide_logs }}/osquery_status\" -index osquery-status -sourcetype 'osquery:status' -auth 'admin:{{ logger_splunk_passwd }}'"
-  ignore_errors: true
+    - name: Configure fleet with packs
+      command: "fleetctl apply -f /opt/osquery-configuration/Fleet/Endpoints/packs/{{ item }}.yaml"
+      with_items:
+        - performance-metrics
+        - security-tooling-checks
+        - windows-application-security
+        - windows-compliance
+        - windows-registry-monitoring
+
+    - name: Add Splunk monitors for Fleet
+      command: "{{ item }}"
+      with_items:
+        - "/opt/splunk/bin/splunk add monitor \"{{ kolide_logs }}/osquery_result\" -index osquery -sourcetype 'osquery:json' -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk add monitor \"{{ kolide_logs }}/osquery_status\" -index osquery-status -sourcetype 'osquery:status' -auth 'admin:{{ logger_splunk_passwd }}'"
+      become: yes
+      become_user: "{{ logger_splunk_user }}"
+      ignore_errors: true
+
+    - name: Add marker for extra fleetctl configuration
+      file:
+        dest: /opt/.fleetctl_extras_done
+        state: touch
+  when: not fleectl_extras.stat.exists
