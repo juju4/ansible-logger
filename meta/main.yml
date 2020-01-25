@@ -17,5 +17,5 @@ galaxy_info:
 dependencies:
   - juju4.kolide
   - juju4.zeek
-#  - mrlesmithjr.suricata
+  - mrlesmithjr.suricata
   - mrlesmithjr.guacamole
