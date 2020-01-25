@@ -146,9 +146,21 @@
     - { s: local-user-prefs.conf, d: /opt/splunk/etc/apps/user-prefs/local/user-prefs.conf}
     - { s: web.conf, d: /opt/splunk/etc/system/local/web.conf}
     - { s: limits.conf, d: /opt/splunk/etc/system/local/limits.conf }
-    - { s: telemetry.conf, d: /opt/splunk/etc/apps/splunk_instrumentation/local/telemetry.conf}
   notify:
     - restart splunk
+
+- name: Configure telemetry.conf
+  ini_file:
+    path: /opt/splunk/etc/apps/splunk_instrumentation/local/telemetry.conf
+    section: default
+    option: "{{ item.o }}"
+    value: "{{ item.v }}"
+    mode: '0600'
+    owner: "{{ item.o | default(logger_splunk_user) }}"
+    backup: "{{ logger_backup | default(true) }}"
+  with_items:
+    - { o: showOptInModal, v: '0' }
+    - { o: optInVersionAcknowledged, v: '4' }
 
 - name: Check if splunk tour disabled
   stat:
