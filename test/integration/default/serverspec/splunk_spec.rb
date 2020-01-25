@@ -10,7 +10,7 @@ end
 
 describe process("splunkd") do
   its(:user) { should eq "_splunk" }
-  its(:args) { should match /-p 8089 restart \[process-runner\]/ }
+  its(:args) { should match /-p 8089 restart/ }
 end
 
 describe port(8000) do
