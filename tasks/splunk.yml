@@ -156,7 +156,7 @@
     option: "{{ item.o }}"
     value: "{{ item.v }}"
     mode: '0600'
-    owner: "{{ item.o | default(logger_splunk_user) }}"
+    owner: "{{ item.owner | default(logger_splunk_user) }}"
     backup: "{{ logger_backup | default(true) }}"
   with_items:
     - { o: showOptInModal, v: '0' }
