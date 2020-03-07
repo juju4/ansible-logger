@@ -8,9 +8,6 @@ env:
   - distribution: ubuntu
     version: 18.04
     suite: default
-  - distribution: ubuntu
-    version: 16.04
-    suite: default
 
 before_install:
   - cd .. && cp -R ansible-logger juju4.logger && cd juju4.logger
