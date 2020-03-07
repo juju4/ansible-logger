@@ -47,6 +47,14 @@ $ molecule test
 $ MOLECULE_NO_LOG="false" MOLECULE_DISTRO=ubuntu:18.04 molecule test --destroy=never
 ```
 
+or with kitchen (with lxd; better for systemd services)
+```
+$ gem install kitchen-ansible kitchen-lxd_cli kitchen-sync
+$ cd /path/to/roles/juju4.logger
+$ kitchen verify
+$ kitchen login
+```
+
 ## License
 
 BSD 2-clause
