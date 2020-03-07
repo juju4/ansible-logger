@@ -8,7 +8,7 @@
   vars:
     use_zeek_opensuse_repo: true
     # to avoid rotating mirror
-    guacamole_dl_url: 'https://www-us.apache.org/dist/guacamole/1.0.0'
+    guacamole_dl_url: 'https://www-us.apache.org/dist/guacamole/1.1.0'
     kolide_enrollment_secret: enrollmentsecret
     broids_intels:
       - /opt/zeek/etc/intel.dat
