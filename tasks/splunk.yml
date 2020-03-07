@@ -11,7 +11,7 @@
 - name: Check latest splunk version
   shell: |
     set -o pipefail
-    curl https://www.splunk.com/en_us/download/splunk-enterprise.html | grep -i deb | grep -Eo "data-link=\"................................................................................................................................" | cut -d '"' -f 2
+    curl https://www.splunk.com/en_us/download/splunk-enterprise.html | grep -i deb | grep -Eo "data-link=\"................................................................................................................................" | cut -d '"' -f 2 # noqa 204
   changed_when: false
   register: LATEST_SPLUNK
   args:
@@ -73,15 +73,15 @@
         - "/opt/splunk/bin/splunk add index zeek -auth 'admin:{{ logger_splunk_passwd }}'"
         - "/opt/splunk/bin/splunk add index suricata -auth 'admin:{{ logger_splunk_passwd }}'"
         - "/opt/splunk/bin/splunk add index threathunting -auth 'admin:{{ logger_splunk_passwd }}'"
-        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_forwarder/splunk-add-on-for-microsoft-windows_500.tgz -auth 'admin:{{ logger_splunk_passwd }}'"
-        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/add-on-for-microsoft-sysmon_800.tgz -auth 'admin:{{ logger_splunk_passwd }}'"
-        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/asn-lookup-generator_101.tgz -auth 'admin:{{ logger_splunk_passwd }}'"
-        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/lookup-file-editor_331.tgz -auth 'admin:{{ logger_splunk_passwd }}'"
-        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/splunk-add-on-for-zeek-aka-bro_400.tgz -auth 'admin:{{ logger_splunk_passwd }}'"
-        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/force-directed-app-for-splunk_200.tgz  -auth 'admin:{{ logger_splunk_passwd }}'"
-        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/punchcard-custom-visualization_130.tgz  -auth 'admin:{{ logger_splunk_passwd }}'"
-        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/sankey-diagram-custom-visualization_130.tgz  -auth 'admin:{{ logger_splunk_passwd }}'"
-        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/link-analysis-app-for-splunk_161.tgz -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_forwarder/splunk-add-on-for-microsoft-windows_500.tgz -auth 'admin:{{ logger_splunk_passwd }}'" # noqa 204
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/add-on-for-microsoft-sysmon_800.tgz -auth 'admin:{{ logger_splunk_passwd }}'" # noqa 204
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/asn-lookup-generator_101.tgz -auth 'admin:{{ logger_splunk_passwd }}'" # noqa 204
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/lookup-file-editor_331.tgz -auth 'admin:{{ logger_splunk_passwd }}'" # noqa 204
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/splunk-add-on-for-zeek-aka-bro_400.tgz -auth 'admin:{{ logger_splunk_passwd }}'" # noqa 204
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/force-directed-app-for-splunk_200.tgz  -auth 'admin:{{ logger_splunk_passwd }}'" # noqa 204
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/punchcard-custom-visualization_130.tgz  -auth 'admin:{{ logger_splunk_passwd }}'" # noqa 204
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/sankey-diagram-custom-visualization_130.tgz  -auth 'admin:{{ logger_splunk_passwd }}'" # noqa 204
+        - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/link-analysis-app-for-splunk_161.tgz -auth 'admin:{{ logger_splunk_passwd }}'" # noqa 204
         - "/opt/splunk/bin/splunk install app {{ logger_repo_vagrant }}/resources/splunk_server/threathunting_141.tgz  -auth 'admin:{{ logger_splunk_passwd }}'"
       ignore_errors: true
       become: yes

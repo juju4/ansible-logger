@@ -63,8 +63,8 @@
     - name: Add Splunk monitors for Fleet
       command: "{{ item }}"
       with_items:
-        - "/opt/splunk/bin/splunk add monitor \"{{ kolide_logs }}/osquery_result\" -index osquery -sourcetype 'osquery:json' -auth 'admin:{{ logger_splunk_passwd }}'"
-        - "/opt/splunk/bin/splunk add monitor \"{{ kolide_logs }}/osquery_status\" -index osquery-status -sourcetype 'osquery:status' -auth 'admin:{{ logger_splunk_passwd }}'"
+        - "/opt/splunk/bin/splunk add monitor \"{{ kolide_logs }}/osquery_result\" -index osquery -sourcetype 'osquery:json' -auth 'admin:{{ logger_splunk_passwd }}'" # noqa 204
+        - "/opt/splunk/bin/splunk add monitor \"{{ kolide_logs }}/osquery_status\" -index osquery-status -sourcetype 'osquery:status' -auth 'admin:{{ logger_splunk_passwd }}'" # noqa 204
       become: yes
       become_user: "{{ logger_splunk_user }}"
       ignore_errors: true
