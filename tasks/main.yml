@@ -1,5 +1,16 @@
 ---
 
+- name: Ensure .ssh directory exists
+  file:
+    path: "/home/{{ ansible_user }}/.ssh"
+    state: directory
+    mode: '0700'
+
+- name: Generate ssh keypair for current user
+  openssh_keypair:
+    path: "/home/{{ ansible_user }}/.ssh/id_rsa"
+    comment: "{{ ansible_user }}@{{ ansible_fqdn }}-{{ ansible_date_time.iso8601 }}"
+
 # https://github.com/clong/DetectionLab/blob/master/Vagrant/bootstrap.sh
 
 # apt_repository ppa may be an issue if behind a proxy as seems no easy way to pass proxy settings to apt-key through add-apt-repository used by ansible
