@@ -47,5 +47,5 @@
             protocol: rdp
             port: 3389
   roles:
-    - { role: geerlingguy.mysql, when: ansible_os_family == 'Debian' }
+    - geerlingguy.mysql
     - role: juju4.logger
